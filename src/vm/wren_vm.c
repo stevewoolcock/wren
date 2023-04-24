@@ -661,7 +661,7 @@ static void bindForeignClass(WrenVM* vm, ObjClass* classObj, ObjModule* module)
   if (methods.finalize != NULL)
   {
 #if WREN_UNITY
-    WrenForeignMethodData foreign = { .symbol = methods.allocateSymbol, .fn = (WrenForeignMethodFn)methods.finalize };
+    WrenForeignMethodData foreign = { .symbol = methods.finalizeSymbol, .fn = (WrenForeignMethodFn)methods.finalize };
     method.as.foreign = foreign;
 #else
     method.as.foreign = (WrenForeignMethodFn)methods.finalize;
