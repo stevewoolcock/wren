@@ -37,13 +37,21 @@ static uint32_t advanceState(Well512* well)
   return well->state[well->index];
 }
 
+#if WREN_UNITY
+static void randomAllocate(WrenVM* vm, uint16_t symbol)
+#else
 static void randomAllocate(WrenVM* vm)
+#endif
 {
   Well512* well = (Well512*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(Well512));
   well->index = 0;
 }
 
+#if WREN_UNITY
+static void randomSeed0(WrenVM* vm, uint16_t symbol)
+#else
 static void randomSeed0(WrenVM* vm)
+#endif
 {
   Well512* well = (Well512*)wrenGetSlotForeign(vm, 0);
 
@@ -54,7 +62,11 @@ static void randomSeed0(WrenVM* vm)
   }
 }
 
+#if WREN_UNITY
+static void randomSeed1(WrenVM* vm, uint16_t symbol)
+#else
 static void randomSeed1(WrenVM* vm)
+#endif
 {
   Well512* well = (Well512*)wrenGetSlotForeign(vm, 0);
 
@@ -65,7 +77,11 @@ static void randomSeed1(WrenVM* vm)
   }
 }
 
+#if WREN_UNITY
+static void randomSeed16(WrenVM* vm, uint16_t symbol)
+#else
 static void randomSeed16(WrenVM* vm)
+#endif
 {
   Well512* well = (Well512*)wrenGetSlotForeign(vm, 0);
 
@@ -75,7 +91,11 @@ static void randomSeed16(WrenVM* vm)
   }
 }
 
+#if WREN_UNITY
+static void randomFloat(WrenVM* vm, uint16_t symbol)
+#else
 static void randomFloat(WrenVM* vm)
+#endif
 {
   Well512* well = (Well512*)wrenGetSlotForeign(vm, 0);
 
@@ -95,7 +115,11 @@ static void randomFloat(WrenVM* vm)
   wrenSetSlotDouble(vm, 0, result);
 }
 
+#if WREN_UNITY
+static void randomInt0(WrenVM* vm, uint16_t symbol)
+#else
 static void randomInt0(WrenVM* vm)
+#endif
 {
   Well512* well = (Well512*)wrenGetSlotForeign(vm, 0);
 

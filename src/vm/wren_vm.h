@@ -28,6 +28,14 @@ struct WrenHandle
   WrenHandle* next;
 };
 
+// A token that can be used to resume a fiber after calling wrenCreateFiber
+// Mainly used in foreign methods to call back into Wren without cloberring the stack
+struct WrenFiberResume
+{
+  ObjFiber* fiber;
+  Value* apiStack;
+};
+
 struct WrenVM
 {
   ObjClass* boolClass;
@@ -66,6 +74,9 @@ struct WrenVM
 
   // The number of total allocated bytes that will trigger the next GC.
   size_t nextGC;
+
+  // Determines if the garbage collector is enabled
+  bool gcEnabled;
 
   // The first object in the linked list of all currently allocated objects.
   Obj* first;

@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 16
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33424.131
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wren_test", "wren_test.vcxproj", "{60BC8FB3-CC26-442A-1565-F5CF810E227F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0143A07C-ED79-A10D-9666-8710827C1D0F} = {0143A07C-ED79-A10D-9666-8710827C1D0F}
@@ -12,14 +14,21 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wren_shared", "wren_shared.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|64bit = Debug|64bit
-		Release|64bit = Release|64bit
-	EndGlobalSection
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|32bit = Debug|32bit
+		Debug|64bit = Debug|64bit
 		Debug|64bit-no-nan-tagging = Debug|64bit-no-nan-tagging
 		Release|32bit = Release|32bit
+		Release|64bit = Release|64bit
 		Release|64bit-no-nan-tagging = Release|64bit-no-nan-tagging
+		ReleaseDLL|32bit = ReleaseDLL|32bit
+		ReleaseDLL|64bit = ReleaseDLL|64bit
+		ReleaseDLL|64bit-no-nan-tagging = ReleaseDLL|64bit-no-nan-tagging
+		UnityRelease|32bit = UnityRelease|32bit
+		UnityRelease|64bit = UnityRelease|64bit
+		UnityRelease|64bit-no-nan-tagging = UnityRelease|64bit-no-nan-tagging
+		UnityReleaseDLL|32bit = UnityReleaseDLL|32bit
+		UnityReleaseDLL|64bit = UnityReleaseDLL|64bit
+		UnityReleaseDLL|64bit-no-nan-tagging = UnityReleaseDLL|64bit-no-nan-tagging
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.Debug|32bit.ActiveCfg = Debug 32bit|Win32
@@ -34,6 +43,24 @@ Global
 		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.Release|64bit.Build.0 = Release 64bit|x64
 		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.Release|64bit-no-nan-tagging.ActiveCfg = Release 64bit-no-nan-tagging|Win32
 		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.Release|64bit-no-nan-tagging.Build.0 = Release 64bit-no-nan-tagging|Win32
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.ReleaseDLL|32bit.ActiveCfg = ReleaseDLL|Win32
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.ReleaseDLL|32bit.Build.0 = ReleaseDLL|Win32
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.ReleaseDLL|64bit.ActiveCfg = ReleaseDLL|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.ReleaseDLL|64bit.Build.0 = ReleaseDLL|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.ReleaseDLL|64bit-no-nan-tagging.ActiveCfg = ReleaseDLL|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.ReleaseDLL|64bit-no-nan-tagging.Build.0 = ReleaseDLL|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityRelease|32bit.ActiveCfg = UnityRelease|Win32
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityRelease|32bit.Build.0 = UnityRelease|Win32
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityRelease|64bit.ActiveCfg = UnityRelease|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityRelease|64bit.Build.0 = UnityRelease|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityRelease|64bit-no-nan-tagging.ActiveCfg = UnityRelease|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityRelease|64bit-no-nan-tagging.Build.0 = UnityRelease|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityReleaseDLL|32bit.ActiveCfg = UnityReleaseDLL|Win32
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityReleaseDLL|32bit.Build.0 = UnityReleaseDLL|Win32
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityReleaseDLL|64bit.ActiveCfg = UnityReleaseDLL|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityReleaseDLL|64bit.Build.0 = UnityReleaseDLL|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityReleaseDLL|64bit-no-nan-tagging.ActiveCfg = UnityReleaseDLL|x64
+		{60BC8FB3-CC26-442A-1565-F5CF810E227F}.UnityReleaseDLL|64bit-no-nan-tagging.Build.0 = UnityReleaseDLL|x64
 		{0143A07C-ED79-A10D-9666-8710827C1D0F}.Debug|32bit.ActiveCfg = Debug 32bit|Win32
 		{0143A07C-ED79-A10D-9666-8710827C1D0F}.Debug|32bit.Build.0 = Debug 32bit|Win32
 		{0143A07C-ED79-A10D-9666-8710827C1D0F}.Debug|64bit.ActiveCfg = Debug 64bit|x64
@@ -46,6 +73,24 @@ Global
 		{0143A07C-ED79-A10D-9666-8710827C1D0F}.Release|64bit.Build.0 = Release 64bit|x64
 		{0143A07C-ED79-A10D-9666-8710827C1D0F}.Release|64bit-no-nan-tagging.ActiveCfg = Release 64bit-no-nan-tagging|Win32
 		{0143A07C-ED79-A10D-9666-8710827C1D0F}.Release|64bit-no-nan-tagging.Build.0 = Release 64bit-no-nan-tagging|Win32
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.ReleaseDLL|32bit.ActiveCfg = ReleaseDLL|Win32
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.ReleaseDLL|32bit.Build.0 = ReleaseDLL|Win32
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.ReleaseDLL|64bit.ActiveCfg = ReleaseDLL|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.ReleaseDLL|64bit.Build.0 = ReleaseDLL|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.ReleaseDLL|64bit-no-nan-tagging.ActiveCfg = ReleaseDLL|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.ReleaseDLL|64bit-no-nan-tagging.Build.0 = ReleaseDLL|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityRelease|32bit.ActiveCfg = UnityRelease|Win32
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityRelease|32bit.Build.0 = UnityRelease|Win32
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityRelease|64bit.ActiveCfg = UnityRelease|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityRelease|64bit.Build.0 = UnityRelease|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityRelease|64bit-no-nan-tagging.ActiveCfg = UnityRelease|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityRelease|64bit-no-nan-tagging.Build.0 = UnityRelease|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityReleaseDLL|32bit.ActiveCfg = UnityReleaseDLL|Win32
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityReleaseDLL|32bit.Build.0 = UnityReleaseDLL|Win32
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityReleaseDLL|64bit.ActiveCfg = UnityReleaseDLL|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityReleaseDLL|64bit.Build.0 = UnityReleaseDLL|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityReleaseDLL|64bit-no-nan-tagging.ActiveCfg = UnityReleaseDLL|x64
+		{0143A07C-ED79-A10D-9666-8710827C1D0F}.UnityReleaseDLL|64bit-no-nan-tagging.Build.0 = UnityReleaseDLL|x64
 		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.Debug|32bit.ActiveCfg = Debug 32bit|Win32
 		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.Debug|32bit.Build.0 = Debug 32bit|Win32
 		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.Debug|64bit.ActiveCfg = Debug 64bit|x64
@@ -58,8 +103,29 @@ Global
 		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.Release|64bit.Build.0 = Release 64bit|x64
 		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.Release|64bit-no-nan-tagging.ActiveCfg = Release 64bit-no-nan-tagging|Win32
 		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.Release|64bit-no-nan-tagging.Build.0 = Release 64bit-no-nan-tagging|Win32
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.ReleaseDLL|32bit.ActiveCfg = ReleaseDLL|Win32
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.ReleaseDLL|32bit.Build.0 = ReleaseDLL|Win32
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.ReleaseDLL|64bit.ActiveCfg = ReleaseDLL|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.ReleaseDLL|64bit.Build.0 = ReleaseDLL|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.ReleaseDLL|64bit-no-nan-tagging.ActiveCfg = ReleaseDLL|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.ReleaseDLL|64bit-no-nan-tagging.Build.0 = ReleaseDLL|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityRelease|32bit.ActiveCfg = UnityRelease|Win32
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityRelease|32bit.Build.0 = UnityRelease|Win32
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityRelease|64bit.ActiveCfg = UnityRelease|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityRelease|64bit.Build.0 = UnityRelease|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityRelease|64bit-no-nan-tagging.ActiveCfg = UnityRelease|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityRelease|64bit-no-nan-tagging.Build.0 = UnityRelease|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityReleaseDLL|32bit.ActiveCfg = UnityReleaseDLL|Win32
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityReleaseDLL|32bit.Build.0 = UnityReleaseDLL|Win32
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityReleaseDLL|64bit.ActiveCfg = UnityReleaseDLL|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityReleaseDLL|64bit.Build.0 = UnityReleaseDLL|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityReleaseDLL|64bit-no-nan-tagging.ActiveCfg = UnityReleaseDLL|x64
+		{579B47D4-C350-C0C9-4C45-BAA0B8F9B6CD}.UnityReleaseDLL|64bit-no-nan-tagging.Build.0 = UnityReleaseDLL|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A6AE99DB-5517-4F1D-92E5-C7C54BF35CBE}
 	EndGlobalSection
 EndGlobal

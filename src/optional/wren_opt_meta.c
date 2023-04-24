@@ -7,7 +7,11 @@
 #include "wren_vm.h"
 #include "wren_opt_meta.wren.inc"
 
+#if WREN_UNITY
+void metaCompile(WrenVM* vm, uint16_t symbol)
+#else
 void metaCompile(WrenVM* vm)
+#endif
 {
   const char* source = wrenGetSlotString(vm, 1);
   bool isExpression = wrenGetSlotBool(vm, 2);
@@ -37,7 +41,11 @@ void metaCompile(WrenVM* vm)
   }
 }
 
+#if WREN_UNITY
+void metaGetModuleVariables(WrenVM* vm, uint16_t symbol)
+#else
 void metaGetModuleVariables(WrenVM* vm)
+#endif
 {
   wrenEnsureSlots(vm, 3);
   

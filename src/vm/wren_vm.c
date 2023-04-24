@@ -88,6 +88,7 @@ WrenVM* wrenNewVM(WrenConfiguration* config)
   vm->grayCapacity = 4;
   vm->gray = (Obj**)reallocate(NULL, vm->grayCapacity * sizeof(Obj*), userData);
   vm->nextGC = vm->config.initialHeapSize;
+  vm->gcEnabled = true;
 
   wrenSymbolTableInit(&vm->methodNames);
 
@@ -228,9 +229,9 @@ void* wrenReallocate(WrenVM* vm, void* memory, size_t oldSize, size_t newSize)
 #if WREN_DEBUG_GC_STRESS
   // Since collecting calls this function to free things, make sure we don't
   // recurse.
-  if (newSize > 0) wrenCollectGarbage(vm);
+  if (newSize > 0 && vm->gcEnabled) wrenCollectGarbage(vm);
 #else
-  if (newSize > 0 && vm->bytesAllocated > vm->nextGC) wrenCollectGarbage(vm);
+  if (newSize > 0 && vm->gcEnabled && vm->bytesAllocated > vm->nextGC) wrenCollectGarbage(vm);
 #endif
 
   return vm->config.reallocateFn(memory, newSize, vm->config.userData);
@@ -304,6 +305,42 @@ static void closeUpvalues(ObjFiber* fiber, Value* last)
 //
 // This will try the host's foreign method binder first. If that fails, it
 // falls back to handling the built-in modules.
+#if WREN_UNITY
+static WrenForeignMethodData findForeignMethod(WrenVM* vm,
+    const char* moduleName,
+    const char* className,
+    bool isStatic,
+    const char* signature)
+{
+    WrenForeignMethodData methodData = { .symbol = 0, .fn = NULL };
+
+    if (vm->config.bindForeignMethodFn != NULL)
+    {
+        methodData = vm->config.bindForeignMethodFn(vm, moduleName, className, isStatic, signature);
+    }
+
+    // If the host didn't provide it, see if it's an optional one.
+    if (methodData.fn == NULL)
+    {
+#if WREN_OPT_META
+        if (strcmp(moduleName, "meta") == 0)
+        {
+            methodData.symbol = 0;
+            methodData.fn = wrenMetaBindForeignMethod(vm, className, isStatic, signature);
+        }
+#endif
+#if WREN_OPT_RANDOM
+        if (strcmp(moduleName, "random") == 0)
+        {
+            methodData.symbol = 0;
+            methodData.fn = wrenRandomBindForeignMethod(vm, className, isStatic, signature);
+        }
+#endif
+    }
+
+    return methodData;
+}
+#else
 static WrenForeignMethodFn findForeignMethod(WrenVM* vm,
                                              const char* moduleName,
                                              const char* className,
@@ -337,6 +374,7 @@ static WrenForeignMethodFn findForeignMethod(WrenVM* vm,
 
   return method;
 }
+#endif
 
 // Defines [methodValue] as a method on [classObj].
 //
@@ -361,7 +399,12 @@ static void bindMethod(WrenVM* vm, int methodType, int symbol,
                                           methodType == CODE_METHOD_STATIC,
                                           name);
 
-    if (method.as.foreign == NULL)
+#if WREN_UNITY
+    WrenForeignMethodFn fn = method.as.foreign.fn;
+#else
+    WrenForeignMethodFn fn = method.as.foreign;
+#endif
+    if (fn == NULL)
     {
       vm->fiber->error = wrenStringFormat(vm,
           "Could not find foreign method '@' for class $ in module '$'.",
@@ -381,13 +424,23 @@ static void bindMethod(WrenVM* vm, int methodType, int symbol,
   wrenBindMethod(vm, classObj, symbol, method);
 }
 
+
+#if WREN_UNITY
+static void callForeign(WrenVM* vm, ObjFiber* fiber,
+                        WrenForeignMethodData* foreign, int numArgs)
+#else
 static void callForeign(WrenVM* vm, ObjFiber* fiber,
                         WrenForeignMethodFn foreign, int numArgs)
+#endif
 {
   ASSERT(vm->apiStack == NULL, "Cannot already be in foreign call.");
   vm->apiStack = fiber->stackTop - numArgs;
 
+#if WREN_UNITY
+  foreign->fn(vm, foreign->symbol);
+#else
   foreign(vm);
+#endif
 
   // Discard the stack slots for the arguments and temporaries but leave one
   // for the result.
@@ -593,7 +646,12 @@ static void bindForeignClass(WrenVM* vm, ObjClass* classObj, ObjModule* module)
   int symbol = wrenSymbolTableEnsure(vm, &vm->methodNames, "<allocate>", 10);
   if (methods.allocate != NULL)
   {
+#if WREN_UNITY
+    WrenForeignMethodData foreign = { .symbol = methods.allocateSymbol, .fn = methods.allocate };
+    method.as.foreign = foreign;
+#else
     method.as.foreign = methods.allocate;
+#endif
     wrenBindMethod(vm, classObj, symbol, method);
   }
   
@@ -602,7 +660,12 @@ static void bindForeignClass(WrenVM* vm, ObjClass* classObj, ObjModule* module)
   symbol = wrenSymbolTableEnsure(vm, &vm->methodNames, "<finalize>", 10);
   if (methods.finalize != NULL)
   {
+#if WREN_UNITY
+    WrenForeignMethodData foreign = { .symbol = methods.allocateSymbol, .fn = (WrenForeignMethodFn)methods.finalize };
+    method.as.foreign = foreign;
+#else
     method.as.foreign = (WrenForeignMethodFn)methods.finalize;
+#endif
     wrenBindMethod(vm, classObj, symbol, method);
   }
 }
@@ -672,7 +735,12 @@ static void createForeign(WrenVM* vm, ObjFiber* fiber, Value* stack)
   ASSERT(vm->apiStack == NULL, "Cannot already be in foreign call.");
   vm->apiStack = stack;
 
+#if WREN_UNITY
+  WrenForeignMethodData* foreign = &method->as.foreign;
+  foreign->fn(vm, foreign->symbol);
+#else
   method->as.foreign(vm);
+#endif
 
   vm->apiStack = NULL;
 }
@@ -695,8 +763,14 @@ void wrenFinalizeForeign(WrenVM* vm, ObjForeign* foreign)
 
   ASSERT(method->type == METHOD_FOREIGN, "Finalizer should be foreign.");
 
+#if WREN_UNITY
+  WrenForeignMethodData* methodData = &method->as.foreign;
+  WrenFinalizerFn fn = (WrenFinalizerFn)methodData->fn;
+  fn(foreign->data, methodData->symbol);
+#else
   WrenFinalizerFn finalizer = (WrenFinalizerFn)method->as.foreign;
   finalizer(foreign->data);
+#endif
 }
 
 // Let the host resolve an imported module name if it wants to.
@@ -1074,7 +1148,11 @@ static WrenInterpretResult runInterpreter(WrenVM* vm, register ObjFiber* fiber)
           break;
 
         case METHOD_FOREIGN:
+#if WREN_UNITY
+          callForeign(vm, fiber, &method->as.foreign, numArgs);
+#else
           callForeign(vm, fiber, method->as.foreign, numArgs);
+#endif
           if (wrenHasError(fiber)) RUNTIME_ERROR();
           break;
 
@@ -1990,4 +2068,34 @@ void* wrenGetUserData(WrenVM* vm)
 void wrenSetUserData(WrenVM* vm, void* userData)
 {
 	vm->config.userData = userData;
+}
+
+WrenFiberResume wrenCreateFiber(WrenVM* vm)
+{
+    WrenFiberResume resume = { .fiber = vm->fiber, .apiStack = vm->apiStack };
+    vm->fiber = wrenNewFiber(vm, NULL);
+    vm->apiStack = vm->fiber->stack;
+
+    return resume;
+}
+
+void wrenResumeFiber(WrenVM* vm, WrenFiberResume resume)
+{
+    vm->fiber = resume.fiber;
+    vm->apiStack = resume.apiStack;
+}
+
+void wrenSetGCEnabled(WrenVM* vm, bool value)
+{
+    vm->gcEnabled = value;
+}
+
+bool wrenGetGCEnabled(WrenVM* vm)
+{
+    return vm->gcEnabled;
+}
+
+size_t wrenBytesAllocated(WrenVM* vm)
+{
+    return vm->bytesAllocated;
 }

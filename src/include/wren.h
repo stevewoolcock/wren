@@ -4,6 +4,9 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#if WREN_UNITY
+#include <stdint.h>
+#endif
 
 // The Wren semantic version number components.
 #define WREN_VERSION_MAJOR 0
@@ -40,6 +43,8 @@ typedef struct WrenVM WrenVM;
 // garbage collector will not reclaim the object it references.
 typedef struct WrenHandle WrenHandle;
 
+typedef struct WrenFiberResume WrenFiberResume;
+
 // A generic allocation function that handles all explicit memory management
 // used by Wren. It's used like so:
 //
@@ -58,13 +63,21 @@ typedef struct WrenHandle WrenHandle;
 typedef void* (*WrenReallocateFn)(void* memory, size_t newSize, void* userData);
 
 // A function callable from Wren code, but implemented in C.
+#if WREN_UNITY
+typedef void (*WrenForeignMethodFn)(WrenVM* vm, uint16_t symbol);
+#else
 typedef void (*WrenForeignMethodFn)(WrenVM* vm);
+#endif
 
 // A finalizer function for freeing resources owned by an instance of a foreign
 // class. Unlike most foreign methods, finalizers do not have access to the VM
 // and should not interact with it since it's in the middle of a garbage
 // collection.
+#if WREN_UNITY
+typedef void (*WrenFinalizerFn)(void* data, uint16_t symbol);
+#else
 typedef void (*WrenFinalizerFn)(void* data);
+#endif
 
 // Gives the host a chance to canonicalize the imported module name,
 // potentially taking into account the (previously resolved) name of the module
@@ -93,11 +106,28 @@ typedef struct WrenLoadModuleResult
 // Loads and returns the source code for the module [name].
 typedef WrenLoadModuleResult (*WrenLoadModuleFn)(WrenVM* vm, const char* name);
 
+#if WREN_UNITY
+// The result of a bindForeignMethodFn.
+// [symbol] is a user defined value attached to the method and is passed as an argument to [fn]
+// [fn] is the foreign method function pointer
+typedef struct WrenForeignMethodData
+{
+    WrenForeignMethodFn fn;
+    uint16_t symbol;
+} WrenForeignMethodData;
+
 // Returns a pointer to a foreign method on [className] in [module] with
 // [signature].
-typedef WrenForeignMethodFn (*WrenBindForeignMethodFn)(WrenVM* vm,
+typedef WrenForeignMethodData(*WrenBindForeignMethodFn)(WrenVM* vm,
     const char* module, const char* className, bool isStatic,
     const char* signature);
+#else
+// Returns a pointer to a foreign method on [className] in [module] with
+// [signature].
+typedef WrenForeignMethodFn(*WrenBindForeignMethodFn)(WrenVM* vm,
+    const char* module, const char* className, bool isStatic,
+    const char* signature);
+#endif
 
 // Displays a string of text to the user.
 typedef void (*WrenWriteFn)(WrenVM* vm, const char* text);
@@ -138,11 +168,24 @@ typedef struct
   // [wrenSetSlotNewForeign()] exactly once.
   WrenForeignMethodFn allocate;
 
+#if WREN_UNITY
+  // A user defined symbol attached to the allocate function and passed
+  // through as an argument when it is called.
+  uint16_t allocateSymbol;
+#endif
+
   // The callback invoked when the garbage collector is about to collect a
   // foreign object's memory.
   //
   // This may be `NULL` if the foreign class does not need to finalize.
   WrenFinalizerFn finalize;
+
+#if WREN_UNITY
+  // A user defined symbol attached to the finalize function and passed
+  // through as an argument when it is called.
+  uint16_t finalizeSymbol;
+#endif
+
 } WrenForeignClassMethods;
 
 // Returns a pair of pointers to the foreign methods used to allocate and
@@ -550,5 +593,24 @@ WREN_API void* wrenGetUserData(WrenVM* vm);
 
 // Sets user data associated with the WrenVM.
 WREN_API void wrenSetUserData(WrenVM* vm, void* userData);
+
+// Creates a new fiber and assigns the api stack to it. Returns a pointer
+// to the previous fiber being run. Use wrenRestoreFiber() to restore the
+// previous fiber when finished with the new fiber.
+WREN_API WrenFiberResume wrenCreateFiber(WrenVM* vm);
+
+// Sets the api stack to the given pointer. Use this only to restore the
+// previous vm fiber and api stack pointers after calling wrenCreateFiber().
+WREN_API void wrenResumeFiber(WrenVM* vm, WrenFiberResume fiber);
+
+// Sets the enabled state of the garbage collector. While disabled, the garbage
+// collector will never run. A manual collection can be run via wrenCollectGarbage().
+WREN_API void wrenSetGCEnabled(WrenVM* vm, bool value);
+
+// Returns a boolean indicating if the garbage collector is currently enabled.
+WREN_API bool wrenGetGCEnabled(WrenVM* vm);
+
+// Returns the number of bytes known to be allocated for all alive objects.
+WREN_API size_t wrenBytesAllocated(WrenVM* vm);
 
 #endif

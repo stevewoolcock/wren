@@ -382,7 +382,11 @@ typedef struct
   union
   {
     Primitive primitive;
+#if WREN_UNITY
+    WrenForeignMethodData foreign;
+#else
     WrenForeignMethodFn foreign;
+#endif
     ObjClosure* closure;
   } as;
 } Method;
