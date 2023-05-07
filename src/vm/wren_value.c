@@ -235,7 +235,9 @@ ObjForeign* wrenNewForeign(WrenVM* vm, ObjClass* classObj, size_t size)
 {
   ObjForeign* object = ALLOCATE_FLEX(vm, ObjForeign, uint8_t, size);
   initObj(vm, &object->obj, OBJ_FOREIGN, classObj);
-
+#if WREN_WRENSHARP_EXT
+  object->size = size;
+#endif
   // Zero out the bytes.
   memset(object->data, 0, size);
   return object;

@@ -21,6 +21,10 @@
   #include <stdio.h>
 #endif
 
+#if WREN_WRENSHARP_EXT
+#include <stdint.h>
+#endif
+
 // The behavior of realloc() when the size is 0 is implementation defined. It
 // may return a non-NULL pointer which must not be dereferenced but nevertheless
 // should be freed. To prevent that, we avoid calling realloc() with a zero
@@ -88,7 +92,9 @@ WrenVM* wrenNewVM(WrenConfiguration* config)
   vm->grayCapacity = 4;
   vm->gray = (Obj**)reallocate(NULL, vm->grayCapacity * sizeof(Obj*), userData);
   vm->nextGC = vm->config.initialHeapSize;
+#if WREN_WRENSHARP_EXT
   vm->gcEnabled = true;
+#endif
 
   wrenSymbolTableInit(&vm->methodNames);
 
@@ -226,13 +232,21 @@ void* wrenReallocate(WrenVM* vm, void* memory, size_t oldSize, size_t newSize)
   // during the next GC.
   vm->bytesAllocated += newSize - oldSize;
 
-#if WREN_DEBUG_GC_STRESS
-  // Since collecting calls this function to free things, make sure we don't
-  // recurse.
-  if (newSize > 0 && vm->gcEnabled) wrenCollectGarbage(vm);
+  if (newSize > 0)
+  {
+#if WREN_WRENSHARP_EXT
+      const bool gcEnabled = vm->gcEnabled;
 #else
-  if (newSize > 0 && vm->gcEnabled && vm->bytesAllocated > vm->nextGC) wrenCollectGarbage(vm);
+      const bool gcEnabled = true;
 #endif
+#if WREN_DEBUG_GC_STRESS
+      // Since collecting calls this function to free things, make sure we don't
+      // recurse.
+      if (gcEnabled) wrenCollectGarbage(vm);
+#else
+      if (gcEnabled && vm->bytesAllocated > vm->nextGC) wrenCollectGarbage(vm);
+#endif
+  }
 
   return vm->config.reallocateFn(memory, newSize, vm->config.userData);
 }
@@ -1747,7 +1761,7 @@ WrenType wrenGetSlotType(WrenVM* vm, int slot)
   if (IS_MAP(vm->apiStack[slot])) return WREN_TYPE_MAP;
   if (IS_NULL(vm->apiStack[slot])) return WREN_TYPE_NULL;
   if (IS_STRING(vm->apiStack[slot])) return WREN_TYPE_STRING;
-  
+
   return WREN_TYPE_UNKNOWN;
 }
 
@@ -2070,7 +2084,72 @@ void wrenSetUserData(WrenVM* vm, void* userData)
 	vm->config.userData = userData;
 }
 
-WrenFiberResume wrenCreateFiber(WrenVM* vm)
+#if WREN_WRENSHARP_EXT
+
+static uint32_t ext_ValidateIndex(WrenVM* vm, int count, int value, const char* argName)
+{
+    // Negative indices count from the end.
+    if (value < 0) value = count + value;
+
+    // Check bounds.
+    if (value >= 0 && value < count) return (uint32_t)value;
+
+    vm->fiber->error = wrenStringFormat(vm, "$ out of bounds.", argName);
+    return UINT32_MAX;
+}
+
+//
+// List extensions
+//
+int ext_wrenGetListIndexOf(WrenVM* vm, int listSlot, int valueSlot)
+{
+    validateApiSlot(vm, listSlot);
+    validateApiSlot(vm, valueSlot);
+    ASSERT(IS_MAP(vm->apiStack[listSlot]), "Slot must hold a list.");
+
+    ObjList* list = AS_LIST(vm->apiStack[listSlot]);
+
+    return wrenListIndexOf(vm, list, vm->apiStack[valueSlot]);
+}
+
+void ext_wrenListClear(WrenVM* vm, int listSlot)
+{
+    validateApiSlot(vm, listSlot);
+    ASSERT(IS_LIST(vm->apiStack[listSlot]), "Slot must hold a list.");
+
+    ObjList* list = AS_LIST(vm->apiStack[listSlot]);
+    wrenValueBufferClear(vm, &list->elements);
+}
+
+void ext_wrenListRemove(WrenVM* vm, int listSlot, int index, int removedValueSlot)
+{
+    validateApiSlot(vm, listSlot);
+    validateApiSlot(vm, removedValueSlot);
+    ASSERT(IS_MAP(vm->apiStack[listSlot]), "Slot must hold a list.");
+
+    ObjList* list = AS_LIST(vm->apiStack[listSlot]);
+
+    ext_ValidateIndex(vm, list->elements.count, index, "index");
+    vm->apiStack[removedValueSlot] = wrenListRemoveAt(vm, list, index);
+}
+
+//
+// Map extensions
+//
+
+void ext_wrenMapClear(WrenVM* vm, int mapSlot)
+{
+    validateApiSlot(vm, mapSlot);
+    ASSERT(IS_MAP(vm->apiStack[mapSlot]), "Slot must hold a map.");
+
+    ObjMap* map = AS_MAP(vm->apiStack[mapSlot]);
+    wrenMapClear(vm, map);
+}
+
+//
+// VM extensions
+//
+WrenFiberResume ext_wrenCreateFiber(WrenVM* vm)
 {
     WrenFiberResume resume = { .fiber = vm->fiber, .apiStack = vm->apiStack };
     vm->fiber = wrenNewFiber(vm, NULL);
@@ -2079,23 +2158,45 @@ WrenFiberResume wrenCreateFiber(WrenVM* vm)
     return resume;
 }
 
-void wrenResumeFiber(WrenVM* vm, WrenFiberResume resume)
+void ext_wrenResumeFiber(WrenVM* vm, WrenFiberResume resume)
 {
     vm->fiber = resume.fiber;
     vm->apiStack = resume.apiStack;
 }
 
-void wrenSetGCEnabled(WrenVM* vm, bool value)
+void ext_wrenSetGCEnabled(WrenVM* vm, bool value)
 {
     vm->gcEnabled = value;
 }
 
-bool wrenGetGCEnabled(WrenVM* vm)
+bool ext_wrenGetGCEnabled(WrenVM* vm)
 {
     return vm->gcEnabled;
 }
 
-size_t wrenBytesAllocated(WrenVM* vm)
+size_t ext_wrenBytesAllocated(WrenVM* vm)
 {
     return vm->bytesAllocated;
 }
+
+uint64_t* ext_wrenGetSlotPtr(WrenVM* vm, int slot)
+{
+    return &vm->apiStack[slot];
+}
+
+void ext_wrenSetSlotValue(WrenVM* vm, int slot, uint64_t value)
+{
+    validateApiSlot(vm, slot);
+    vm->apiStack[slot] = value;
+}
+
+size_t ext_wrenGetSlotForeignSize(WrenVM* vm, int slot)
+{
+    validateApiSlot(vm, slot);
+    ASSERT(IS_FOREIGN(vm->apiStack[slot]),
+        "Slot must hold a foreign instance.");
+
+    return AS_FOREIGN(vm->apiStack[slot])->size;
+}
+
+#endif

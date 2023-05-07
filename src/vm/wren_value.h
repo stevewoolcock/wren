@@ -422,6 +422,9 @@ struct sObjClass
 typedef struct
 {
   Obj obj;
+#if WREN_WRENSHARP_EXT
+  size_t size;
+#endif
   uint8_t data[FLEXIBLE_ARRAY];
 } ObjForeign;
 

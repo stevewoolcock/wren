@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#if WREN_UNITY
+#if WREN_UNITY || WREN_WRENSHARP_EXT
 #include <stdint.h>
 #endif
 
@@ -594,23 +594,50 @@ WREN_API void* wrenGetUserData(WrenVM* vm);
 // Sets user data associated with the WrenVM.
 WREN_API void wrenSetUserData(WrenVM* vm, void* userData);
 
+#if WREN_WRENSHARP_EXT
+
 // Creates a new fiber and assigns the api stack to it. Returns a pointer
 // to the previous fiber being run. Use wrenRestoreFiber() to restore the
 // previous fiber when finished with the new fiber.
-WREN_API WrenFiberResume wrenCreateFiber(WrenVM* vm);
+WREN_API WrenFiberResume ext_wrenCreateFiber(WrenVM* vm);
 
 // Sets the api stack to the given pointer. Use this only to restore the
 // previous vm fiber and api stack pointers after calling wrenCreateFiber().
-WREN_API void wrenResumeFiber(WrenVM* vm, WrenFiberResume fiber);
+WREN_API void ext_wrenResumeFiber(WrenVM* vm, WrenFiberResume fiber);
 
 // Sets the enabled state of the garbage collector. While disabled, the garbage
 // collector will never run. A manual collection can be run via wrenCollectGarbage().
-WREN_API void wrenSetGCEnabled(WrenVM* vm, bool value);
+WREN_API void ext_wrenSetGCEnabled(WrenVM* vm, bool value);
 
 // Returns a boolean indicating if the garbage collector is currently enabled.
-WREN_API bool wrenGetGCEnabled(WrenVM* vm);
+WREN_API bool ext_wrenGetGCEnabled(WrenVM* vm);
 
 // Returns the number of bytes known to be allocated for all alive objects.
-WREN_API size_t wrenBytesAllocated(WrenVM* vm);
+WREN_API size_t ext_wrenBytesAllocated(WrenVM* vm);
+
+// Returns a pointer to [slot]
+WREN_API uint64_t* ext_wrenGetSlotPtr(WrenVM* vm, int slot);
+
+// Sets the value of [slot] to the raw value.
+WREN_API void ext_wrenSetSlotValue(WrenVM* vm, int slot, uint64_t value);
+
+// Returns the index of the value in [valueSlot] within the list in [listSlot].
+// Returns -1 if the value is not found.
+WREN_API int ext_wrenGetListIndexOf(WrenVM* vm, int listSlot, int valueSlot);
+
+// Removes all elements from the list in [listSlot]
+WREN_API void ext_wrenListClear(WrenVM* vm, int listSlot);
+
+// Removes the value a [index] from the list [listSlot] and places the removed
+// value in [removedValueSlot].
+WREN_API void ext_wrenListRemove(WrenVM* vm, int listSlot, int index, int removedValueSlot);
+
+// Clears the map in [mapSlot]
+WREN_API void ext_wrenMapClear(WrenVM* vm, int mapSlot);
+
+// Returns the data size of the foreign class instance in [slot]
+WREN_API size_t ext_wrenGetSlotForeignSize(WrenVM* vm, int slot);
+
+#endif
 
 #endif
